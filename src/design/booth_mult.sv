@@ -13,29 +13,28 @@ module booth_mult #(
 );
 
   // ==============================
-  // Thanh ghi chính chứa cả P và B
-  // [P cao | B thấp | bit 0 bổ sung]
+  // Thanh ghi 
   // ==============================
   reg  signed [P_WIDTH+B_WIDTH:0] reg_PB;
-  reg  signed [P_WIDTH+B_WIDTH:0] mid_PB;   // sau khi dịch lần 1
-  reg  signed [P_WIDTH+B_WIDTH:0] next_PB;  // sau khi cộng/trừ
+  reg  signed [P_WIDTH+B_WIDTH:0] mid_PB;   
+  reg  signed [P_WIDTH+B_WIDTH:0] next_PB; 
 
   // Booth control signals
   wire signed [2:0] booth_in;
   wire booth_enc_neg, booth_enc_A, booth_enc_2A;
 
-  // Xử lý số A
+  // X? lý s? A
   wire signed [P_WIDTH:0] A_ext;
   wire signed [P_WIDTH:0] A_shifted;
   wire signed [P_WIDTH:0] A_sel;
   wire signed [P_WIDTH:0] addsub_out;
 
-  // Bộ đếm vòng lặp
+  
   integer count;
   localparam MAX_COUNT = (B_WIDTH + 2)/ 2;
   reg done;
 
-  // Trạng thái điều khiển FSM
+
   typedef enum reg [1:0] {
     IDLE = 2'b00,
     SHIFT1 = 2'b01,
@@ -48,7 +47,7 @@ module booth_mult #(
   // ==============================
   // BOOTH ENCODER
   // ==============================
-  assign booth_in = mid_PB[2:0]; // nhóm 3 bit thấp sau khi dịch lần 1
+  assign booth_in = reg_PB[2:0]; // nhóm 3 bit th?p sau khi d?ch l?n 1
 
   booth_encoder u_booth_encoder (
     .booth_enc_in (booth_in),
@@ -57,13 +56,9 @@ module booth_mult #(
     .booth_enc_2A (booth_enc_2A)
   );
 
-  // ==============================
-  // Mở rộng A sang độ rộng của P
-  // ==============================
   assign A_ext     = {{(P_WIDTH+1-A_WIDTH){A[A_WIDTH-1]}}, A};
   assign A_shifted = A_ext <<<1;
-
-  // Chọn hệ số nhân
+  
   assign A_sel =
       booth_enc_2A ? A_shifted :
       booth_enc_A  ? A_ext :
@@ -73,7 +68,7 @@ module booth_mult #(
   // ADD / SUB UNIT
   // ==============================
   add_sub_unit #(.WIDTH(P_WIDTH+1)) u_add_sub (
-    .A   (mid_PB[P_WIDTH+B_WIDTH : B_WIDTH]), // phần P cao sau khi dịch 1 lần
+    .A   (mid_PB[P_WIDTH+B_WIDTH : B_WIDTH]), // ph?n P cao sau khi d?ch 1 l?n
     .B   (A_sel),
     .SnA (booth_enc_neg),
     .S   (addsub_out)
@@ -103,30 +98,30 @@ module booth_mult #(
         end
 
         SHIFT1: begin
-          // ======== Dịch 1 bit trước khi cộng ========
+          // ======== D?ch 1 bit tr??c khi c?ng ========
           mid_PB <= $signed(reg_PB) >>> 1;
           state  <= ADD_SUB;
         end
 
         ADD_SUB: begin
-          // ======== Cộng/trừ theo Booth encoder ========
+          // ======== C?ng/tr? theo Booth encoder ========
           next_PB <= { addsub_out, mid_PB[B_WIDTH-1:0] };
           state   <= SHIFT2;
         end
 
         SHIFT2: begin
-          // ======== Dịch phải thêm 1 bit (tổng cộng 2 bit mỗi vòng) ========
+          // ======== D?ch ph?i thêm 1 bit (t?ng c?ng 2 bit m?i vòng) ========
           reg_PB <= $signed(next_PB) >>> 1;
           count  <= count + 1;
 
-          // ======== Lưu tạm kết quả phần P ========
-          P <= reg_PB[P_WIDTH-1:0];
+          // ======== L?u t?m k?t qu? ph?n P ========
+          P <= mid_PB[P_WIDTH-1:0];
 
           if (count == MAX_COUNT - 1) begin
             done  <= 1'b1;
             state <= IDLE;
           end else begin
-            state <= SHIFT1; // quay lại chu kỳ tiếp theo
+            state <= SHIFT1; // quay l?i chu k? ti?p theo
           end
         end
       endcase
@@ -134,3 +129,4 @@ module booth_mult #(
   end
 
 endmodule
+
