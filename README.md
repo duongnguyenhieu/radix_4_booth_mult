@@ -14,4 +14,4 @@ The code here is written for educational/research purposes to validate
 and experiment with the proposed architecture.
 
 
-![Booth multiplier architecture](images/booth.png)
+![Booth multiplier architecture](images/booth_architecture.png)
