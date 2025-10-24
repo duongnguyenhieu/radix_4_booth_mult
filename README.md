@@ -14,5 +14,4 @@ The code here is written for educational/research purposes to validate
 and experiment with the proposed architecture.
 
 
-![Describe Radix-4 8-Bit Booth Multiplier Architecture]
-(images/booth_architecture.png)
+![Booth multiplier architecture](images/booth.png)
